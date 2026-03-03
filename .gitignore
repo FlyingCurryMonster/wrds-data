@@ -1,2 +1,3 @@
 compustat/rdq.csv
 **/*.csv
+.mcp.json

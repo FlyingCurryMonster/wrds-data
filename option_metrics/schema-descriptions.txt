@@ -1,0 +1,158 @@
+#### Dividend distribution history ####
+Variable Name 	Type 	Description
+cusip 	Char 	CUSIP (cusip)
+ticker 	Char 	Ticker (ticker)
+sic 	Char 	SIC (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	Issue Type (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+seq_num 	Float 	Sequence Number for Multiple Distributions (seq_num)
+ex_date 	Date 	Ex-Distribution Date or Ex-Dividen Date (ex_date)
+amount 	Float 	Cash Distribution Amount in Dollar (amount)
+adj_factor 	Float 	Adjustment to the Security\'\'s Price (adj_factor)
+declare_date 	Date 	Declaration Date for the Distribution (declare_date)
+payment_date 	Date 	Payment Date for the Distribution (payment_date)
+link_secid 	Float 	For M&A, the Security ID for the Aquiring company. Or the Spun-Offs. (link_secid)
+distr_type 	Char 	Type of Distribution (distr_type)
+frequency 	Char 	Payment Frequency (frequency)
+currency 	Char 	ISO Code of Currency of the Cash Dist. (currency)
+approx_flag 	Char 	1-Amount is Appoximate. (approx_flag)
+cancel_flag 	Char 	1-Distribution was Canceled. (cancel_flag)
+liquid_flag 	Char 	1-Distribution Is a Partial or Total Liquidating Distribution. (liquid_flag)
+
+
+###### EXCHANGE LISTING HISTORY ######
+Variable Name 	Type 	Description
+cusip 	Char 	CUSIP (cusip)
+ticker 	Char 	Ticker (ticker)
+sic 	Char 	SIC (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	Issue Type (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+seq_num 	Float 	Sequence Number for Multiple Exchange Changes (seq_num)
+status 	Char 	Security\'\'s Status (status)
+exchange 	Char 	Exchange Added or Delete (exchange)
+add_del 	Char 	*-Exchange Added. Blank-Exchange Was Deleted (add_del)
+exch_flag 	Char 	Primary Exchange for the Issue After the Change (exch_flag)
+
+##### FORWARD PRICES ######
+# for some reason there ar 17 columns here but my dataset only has 14 columns
+# check head -n 5 in terminal to verify
+Variable Name 	Type 	Description
+secid 	Float 	Security ID (secid)
+date 	Date 	The Date for this price record (date)
+expiration 	Date 	The expiration date of the option (expiration)
+amsettlement 	Float 	AM Settlement Flag (amsettlement)
+forwardprice 	Float 	Forward Price (forwardprice)
+div_convention 	Char 	Method of Incorporating Dividends Into the Option Calculations (div_convention)
+exercise_style 	Char 	(A)merican, (E)uropean, or ? (exercise_style)
+am_set_flag 	Char 	AM Settlement Flag (am_set_flag)
+cusip 	Char 	CUSIP Number (cusip)
+ticker 	Char 	Ticker Symbol (ticker)
+sic 	Char 	SIC Code (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	The Type of Security (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+issuer 	Char 	Description of the Issuing Company (issuer)
+
+##### INDEX DIVIDEND YIELD #####
+Variable Name 	Type 	Description
+cusip 	Char 	CUSIP Number (cusip)
+ticker 	Char 	Ticker Symbol (ticker)
+sic 	Char 	SIC Code (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	The Type of Security (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+secid 	Float 	Security ID (secid)
+date 	Date 	Date of the Dividend Yield (date)
+rate 	Float 	Dividend Yield (rate)
+expiration 	Date 	expiration
+
+##### OPTION PRICES #######
+Variable Name 	Type 	Description
+secid 	Float 	Security ID (secid)
+date 	Date 	The Date of this Price (date)
+symbol 	Char 	Option Symbol (symbol)
+symbol_flag 	Char 	0=Old option notation 1=New OSI symbol (symbol_flag)
+exdate 	Date 	Expiration Date of the Option (exdate)
+last_date 	Date 	Date on Which the Option Last Traded (last_date)
+cp_flag 	Char 	C=Call, P=Put (cp_flag)
+strike_price 	Float 	Strike Price of the Option Times 1000 (strike_price)
+best_bid 	Float 	Highest Closing Bid Across All Exchanges (best_bid)
+best_offer 	Float 	Lowest Closing Ask Across All Exchanges (best_offer)
+volume 	Float 	Volume (volume)
+open_interest 	Float 	Open Interest for the Option (open_interest)
+impl_volatility 	Float 	Implied Volatility of the Option (impl_volatility)
+delta 	Float 	Delta of the Option (delta)
+gamma 	Float 	Gamma of the Option (gamma)
+vega 	Float 	Vega/Kappa of the Option (vega)
+theta 	Float 	Theta of the Option (theta)
+optionid 	Float 	Unique ID for the Option Contract (optionid)
+cfadj 	Float 	Cumulative Adjustment Factor (cfadj)
+am_settlement 	Float 	am_settlement
+contract_size 	Float 	contract_size
+ss_flag 	Char 	Settlement Flag: 0=Standard, 1=Non-std, E=Non-std Exp. Date (ss_flag)
+forward_price 	Float 	forward_price
+expiry_indicator 	Char 	expiry_indicator
+root 	Char 	Root of the Option Symbol (root)
+suffix 	Char 	Suffix of the Option Symbol (suffix)
+secid 	Float 	Security ID (secid)
+div_convention 	Char 	Method of Incorporating Dividends Into the Option Calculations (div_convention)
+exercise_style 	Char 	(A)merican, (E)uropean, or ? (exercise_style)
+am_set_flag 	Char 	AM Settlement Flag (am_set_flag)
+secid 	Float 	Security ID (secid)
+cusip 	Char 	CUSIP Number (cusip)
+ticker 	Char 	Ticker Symbol (ticker)
+sic 	Char 	SIC Code (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	The Type of Security (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+issuer 	Char 	Description of the Issuing Company (issuer)
+
+#### SECURITY NAME HISTORY ######
+Variable Name 	Type 	Description
+ticker 	Char 	Ticker (ticker)
+cusip 	Char 	CUSIP (cusip)
+sic 	Char 	SIC Code (sic)
+effect_date 	Date 	Effective Date (effect_date)
+class 	Char 	Class Designator (class)
+issue 	Char 	Description of the Issue (issue)
+issuer 	Char 	Description of the Issuing Company (issuer)
+
+##### SECURITY PRICES ######
+
+Variable Name 	Type 	Description
+cusip 	Char 	CUSIP (cusip)
+ticker 	Char 	Ticker (ticker)
+sic 	Char 	SIC (sic)
+index_flag 	Char 	Index Flag (index_flag)
+exchange_d 	Float 	Exchange Designator (exchange_d)
+class 	Char 	Class Designator (class)
+issue_type 	Char 	Issue Type (issue_type)
+industry_group 	Float 	Industry Group (industry_group)
+low 	Float 	Bid/Low (low)
+high 	Float 	Ask/High (high)
+open 	Float 	Open Price (open)
+close 	Float 	Close Price (close)
+volume 	Float 	Volume (volume)
+return 	Float 	Return (return)
+cfadj 	Float 	Cumulative Adjustment Factor (cfadj)
+shrout 	Float 	Shares Outstanding (shrout)
+cfret 	Float 	Cumulative Total Return Factor (cfret)
+
+
+#### Zero coupon yield curve #####
+Variable Name 	Type 	Description
+date 	Date 	Date of this Zero Curve (date)
+days 	Float 	Days to Maturity (days)
+rate 	Float 	Continuously Compounded Zero-Coupon Interest Rate (rate)
