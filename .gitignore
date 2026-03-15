@@ -3,3 +3,5 @@ compustat/rdq.csv
 .mcp.json
 **/*.part
 option_metrics/option prices/b3hi0tslj1nrm1fl.C-LfE_4r.csv.part
+.env
+**/.env
