@@ -7,3 +7,5 @@ option_metrics/option prices/b3hi0tslj1nrm1fl.C-LfE_4r.csv.part
 **/.env
 *.code-workspace
 **/*.json
+.jupyter_ystore.db
+**/*checkpoint.ipynb
