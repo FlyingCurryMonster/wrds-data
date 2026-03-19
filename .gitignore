@@ -10,3 +10,5 @@ option_metrics/option prices/b3hi0tslj1nrm1fl.C-LfE_4r.csv.part
 .jupyter_ystore.db
 **/*checkpoint.ipynb
 **/__pycache__
+**/*.jsonl
+**/*.log
