@@ -6,8 +6,8 @@
 |-------|------|------------|--------|
 | `option_pricing` | 4.25B | 2000-01-03 – 2025-08-29 | Complete |
 | `option_pricing_v2` | 2.59B | partial | Recompression in progress (~61%) |
-| `forward_price` | 123M | 2000-01-03 – 2025-08-29 | Complete |
-| `security_prices` | 52M | 2000-01-03 – 2023-08-31 | **Missing 2023-09 to present** |
+| `forward_price` | 123M | 2000-01-03 – 2025-08-29 | Complete (~147K dupes to clean) |
+| `security_prices` | 57M | 2000-01-03 – 2025-08-29 | Complete |
 | `index_dividend_yield` | 2.4M | 2000-01-03 – 2025-08-29 | Complete (see notes) |
 | `zero_coupon_yield_curve` | 260K | 2000-01-03 – 2025-08-29 | **Schema change in 2022** (see notes) |
 | `security_names` | 272K | 1994-09-01 – 2025-10-22 | Complete |
@@ -21,7 +21,10 @@
 ## Downloads Needed from WRDS
 
 ### Gap-filling
-- [ ] `security_prices`: 2023-09-01 to present
+- [x] `security_prices`: 2023-09-01 to present ✓ loaded 2025-08-29
+
+### Deduplication
+- [ ] `forward_price`: ~147K duplicate rows (by secid, date, expiration), heaviest in 2016-2023
 
 ### New Datasets to Evaluate
 - [ ] Historical volatility (`HIST_VOL` / `optvol.hist_ivol_*`)
