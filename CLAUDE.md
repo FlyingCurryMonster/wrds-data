@@ -94,7 +94,8 @@ Strike encoding: `strike_price // 10` (OM strike is in tenths of a cent; LSEG dr
 Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 ### Known RIC Format Issues
-- **NDX, SPX, RUT**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars with standard construction. See `INDEX_RIC_INVESTIGATION.md`.
+- **NDX, SPX, RUT, RUTW**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars with standard construction. See `INDEX_RIC_INVESTIGATION.md`.
+- **MRUT**: Works correctly with OPRA format despite being a Russell index product (micro-sized, structured differently).
 - **XSP**: Works correctly with OPRA format despite being an index product.
 
 ### Contract Sources (Three Periods)
@@ -119,14 +120,21 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 
 ### Download Pipeline
 
-**Main script**: `download_om_minute_bars.py TICKER [WORKERS]`
-- Currently queries ClickHouse for contracts — **needs modification** to read from pre-generated CSVs on data feed machine (no ClickHouse available there)
-- **2-week limit per contract**: `fetch_bars()` stops paginating once bars go beyond 2 weeks before the most recent bar. Rationale: LSEG has a 1-year rolling retention window. During initial setup/debugging, time passes and the oldest bars risk expiring. Capping at 2 weeks immediately captures the data most at risk while the full pipeline is validated. Once setup is stable, this limit can be removed for a full backfill.
+**Main script**: `download_om_minute_bars.py TICKER [WORKERS] [--csv PATH]`
+- Reads contracts from `data/{TICKER}/contracts.csv` (pre-built per-ticker file, no ClickHouse)
+- Downloads full history — no time cap; paginates until LSEG returns no more data
+- Column names discovered dynamically from API response headers (not hardcoded)
 - Outputs: `data/{TICKER}/om_minute_bars.csv`, `data/{TICKER}/om_bars_log.jsonl` (resume), `data/{TICKER}/om_bars_progress.log`
 - Resume: reads `om_bars_log.jsonl` to skip completed contracts — safe to kill/restart
 
+**Per-ticker contract files**: `data/{TICKER}/contracts.csv`
+- Built by `build_ticker_contracts.py` — merges all three source files, deduplicates by `base_ric`
+- Columns: `base_ric, query_ric, source` (source = om/cboe/gap)
+- 6,570 tickers total, 5.9M contracts across all sources
+- Run `python build_ticker_contracts.py` to rebuild if source files change
+
 **Orchestrator**: `run_all_om_bars.sh`
-- Iterates through `all_om_tickers.csv` (6,118 tickers ordered by contract count desc)
+- Iterates through `all_tickers.csv` (6,570 tickers ordered by contract count desc, all sources)
 - Skips tickers with `COMPLETE` in their `om_run.log`
 - Launched via `nohup`, survives terminal/Claude restarts
 
@@ -138,11 +146,11 @@ tail -2 "data/$ACTIVE/om_run.log"
 ```
 
 ### Download Status (as of 2026-03-26)
-- **Scale**: 4.12M contracts total, ~21K contracts/hour at 23 req/sec
-- **Attempted tickers**: ~61/6,118
-- **Status**: **HALTED — research machine ran out of disk space** at ticker 61
-- **Output**: ~232 GB of CSV bar data already offloaded to expansion drive
-- **Migration plan**: move job to data feed machine (8TB drive, ~5.7TB free) — see below
+- **Scale**: 5.9M contracts across 6,570 tickers (OM + CBOE + gap), ~42 hours estimated
+- **Running on**: data feed machine (8TB expansion drive, ~5TB free)
+- **Completed on research machine**: ~60 tickers with 2-week-limited bars — need re-download
+- **Current status**: RUNNING — migrated to data feed machine, job active via nohup PID 362877
+- **Note**: NDX, SPX, RUT, RUTW will complete with 0 bars (wrong RIC format — see INDEX_RIC_INVESTIGATION.md)
 
 ### Tick Data (separate from bars)
 - Trade tick retention: ~3 months; quote tick retention: ~2.5 weeks
@@ -183,21 +191,25 @@ tail -2 "data/$ACTIVE/om_run.log"
 LSEG datastream/
 ├── intraday options data/
 │   ├── download_om_minute_bars.py     # main bar download script
-│   ├── run_all_om_bars.sh             # orchestrator for all 6118 tickers
+│   ├── run_all_om_bars.sh             # orchestrator (6,570 tickers, all sources)
+│   ├── build_ticker_contracts.py      # merges 3 source CSVs into per-ticker contracts.csv
+│   ├── all_tickers.csv                # 6,570 tickers ordered by contract count (all sources)
 │   ├── pregen_om_contracts.py         # (used to generate all_om_contracts.csv)
 │   ├── build_om_rics.py               # (used to add RIC columns)
 │   ├── notes.md                       # full API/RIC technical reference
 │   ├── HANDOFF_OM_MINUTE_BARS.md      # download job handoff doc
-│   ├── INDEX_RIC_INVESTIGATION.md     # SPX/NDX/RUT RIC format investigation
+│   ├── INDEX_RIC_INVESTIGATION.md     # SPX/NDX/RUT/RUTW RIC format investigation
+│   ├── om_all_run.log                 # global orchestrator log
 │   └── data/
 │       └── {TICKER}/
+│           ├── contracts.csv          # all RICs for this ticker (OM + CBOE + gap)
 │           ├── om_minute_bars.csv     # downloaded bar data
-│           ├── om_bars_log.jsonl      # resume checkpoint
+│           ├── om_bars_log.jsonl      # resume checkpoint (one entry per contract)
+│           ├── om_bars_progress.log   # timestamped throughput log
 │           └── om_run.log             # per-ticker run log
-│   └── om_all_run.log                 # global orchestrator log
 └── expired options search/
     ├── all_om_contracts.csv           # 4.12M OM contracts with RICs
-    ├── all_om_tickers.csv             # 6118 tickers ordered by contract count
+    ├── all_om_tickers.csv             # 6,118 OM-only tickers
     ├── all_cboe_contracts.csv         # 1.73M CBOE contracts with LSEG RICs
     ├── all_names_gap_rics.csv         # 482K gap period RIC candidates
     ├── all_names_gap_probe_results.csv # probe results (96.9% hit rate)
@@ -213,17 +225,18 @@ LSEG datastream/
 ## TODO
 
 ### Immediate
-- [x] Modify `download_om_minute_bars.py` to read contracts from CSV (ClickHouse removed; all three source files supported via `--csv` flag; full history; columns discovered dynamically from API response)
-- [ ] Complete transfer of bar CSVs and log files to expansion drive
-- [ ] Transfer to data feed machine: `expired options search/all_om_contracts.csv`, `all_om_tickers.csv`, `all_names_gap_rics.csv`, `all_cboe_contracts.csv`, `.env`, per-ticker `data/{TICKER}/om_bars_log.jsonl`
-- [ ] Install Python deps on data feed machine (`pip install requests python-dotenv lseg-data`)
-- [ ] Resume download on data feed machine
+- [x] Modify `download_om_minute_bars.py` to read contracts from CSV (ClickHouse removed; full history; columns discovered dynamically from API response)
+- [x] Build per-ticker `contracts.csv` files merging all 3 sources (`build_ticker_contracts.py`)
+- [x] Transfer files from expansion drive and resume download on data feed machine
+- [x] Install Python deps (`pip install requests python-dotenv lseg-data`)
+- [x] Download job running on data feed machine
+- [ ] Re-download the ~60 tickers from research machine that only have 2-week bars (delete their `om_bars_log.jsonl` and remove COMPLETE from `om_run.log` to force re-run after main job completes)
 
 ### Pending
 - [ ] Re-probe 14,824 errored rows in `all_names_gap_probe_results.csv`
 - [ ] Download bars for gap period contracts (`all_names_gap_rics.csv`)
 - [ ] Download bars for CBOE Dec 2025–Mar 2026 contracts (`all_cboe_contracts.csv`)
-- [ ] Investigate correct RIC format for NDX, SPX, RUT index options (see `INDEX_RIC_INVESTIGATION.md`)
+- [ ] Investigate correct RIC format for NDX, SPX, RUT, RUTW index options (see `INDEX_RIC_INVESTIGATION.md`)
 - [ ] Download daily bars (greeks + IV) for all contracts — separate pipeline, retained indefinitely
 - [ ] OM data extension: forward_price/security_prices/option_pricing end 2025-08-29, need 2025-08-30 to present from WRDS
 - [ ] GICS historical classifications: `comp.co_hgic` table not yet downloaded
