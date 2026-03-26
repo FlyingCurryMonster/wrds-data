@@ -229,7 +229,7 @@ LSEG datastream/
 - [x] Transfer files from expansion drive and resume download on data feed machine
 - [x] Install Python deps (`pip install requests python-dotenv lseg-data`)
 - [x] Download job running on data feed machine
-- [ ] Re-download the ~60 tickers from research machine that only have 2-week bars (delete their `om_bars_log.jsonl` and remove COMPLETE from `om_run.log` to force re-run after main job completes)
+- [ ] Re-download the ~60 tickers completed on research machine with only 2-week bars — these are the most liquid names (AAPL, TSLA, NVDA, SPY, QQQ, IWM, GLD, NFLX, MELI, MSTR, DIA, GS, NOW, ASML, APP, LLY, SPOT, COIN, IVV, GEV, and ~40 more). To force re-run: delete `data/{TICKER}/om_bars_log.jsonl` and remove the COMPLETE line from `data/{TICKER}/om_run.log`, then re-run orchestrator.
 
 ### Pending
 - [ ] Re-probe 14,824 errored rows in `all_names_gap_probe_results.csv`
