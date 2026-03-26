@@ -94,9 +94,8 @@ Strike encoding: `strike_price // 10` (OM strike is in tenths of a cent; LSEG dr
 Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 ### Known RIC Format Issues
-- **NDX, SPX, RUT, RUTW**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars with standard construction. See `INDEX_RIC_INVESTIGATION.md`.
-- **MRUT**: Works correctly with OPRA format despite being a Russell index product (micro-sized, structured differently).
-- **XSP**: Works correctly with OPRA format despite being an index product.
+- **NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars. All skipped (stamped COMPLETE). See `INDEX_RIC_INVESTIGATION.md`.
+- **MRUT, XSP**: Work correctly with OPRA format despite being index products (micro/mini sized, structured differently).
 
 ### Contract Sources (Three Periods)
 
@@ -150,7 +149,7 @@ tail -2 "data/$ACTIVE/om_run.log"
 - **Running on**: data feed machine (8TB expansion drive, ~5TB free)
 - **Completed on research machine**: ~60 tickers with 2-week-limited bars — need re-download
 - **Current status**: RUNNING — migrated to data feed machine, job active via nohup PID 362877
-- **Note**: NDX, SPX, RUT, RUTW will complete with 0 bars (wrong RIC format — see INDEX_RIC_INVESTIGATION.md)
+- **Note**: NDX, SPX, RUT, RUTW skipped (wrong RIC format, 0 bars) — manually stamped COMPLETE to avoid wasting download time. See INDEX_RIC_INVESTIGATION.md for correct format investigation.
 
 ### Tick Data (separate from bars)
 - Trade tick retention: ~3 months; quote tick retention: ~2.5 weeks
