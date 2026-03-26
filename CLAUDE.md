@@ -101,13 +101,13 @@ Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 | Period | Source | File | Contracts |
 |--------|--------|------|-----------|
-| Mar 25 2025 – Mar 20 2026 | OptionMetrics `option_pricing` table | `intraday options data/all_om_contracts.csv` | 4.12M |
+| Mar 25 2025 – Mar 25 2026 | OptionMetrics `option_pricing` table | `intraday options data/all_om_contracts.csv` | 4.12M |
 | Aug 30 – Dec 4 2025 | CBOE Dec 5 Wayback snapshot + brute-force probe | `expired options search/all_names_gap_rics.csv` | 482K |
 | Dec 5 2025 – present | CBOE Dec 5 Wayback snapshot | `expired options search/all_cboe_contracts.csv` | 1.73M (1.09M in window) |
 
 All three files have `base_ric` and `query_ric` columns and require no ClickHouse on the data feed machine.
 
-Note: `all_om_contracts.csv` covers Mar 25 2025 – Mar 20 2026 (scoped to the 1-year LSEG retention window). It includes contracts expiring after Aug 29 2025 that were already listed in OM at snapshot time — these overlap with the gap and CBOE periods.
+Note: `all_om_contracts.csv` covers Mar 25 2025 – Mar 25 2026 (scoped to the 1-year LSEG retention window). It includes contracts expiring after Aug 29 2025 that were already listed in OM at snapshot time — these overlap with the gap and CBOE periods.
 
 ### Gap Period (Aug 30 – Dec 4 2025)
 OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
