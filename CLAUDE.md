@@ -101,7 +101,7 @@ Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 | Period | Source | File | Contracts |
 |--------|--------|------|-----------|
-| Mar 25 2025 – Mar 25 2026 | OptionMetrics `option_pricing` table | `intraday options data/all_om_contracts.csv` | 4.12M |
+| Mar 25 2025 – Mar 25 2026 | OptionMetrics `option_pricing` table | `expired options search/all_om_contracts.csv` | 4.12M |
 | Aug 30 – Dec 4 2025 | CBOE Dec 5 Wayback snapshot + brute-force probe | `expired options search/all_names_gap_rics.csv` | 482K |
 | Dec 5 2025 – present | CBOE Dec 5 Wayback snapshot | `expired options search/all_cboe_contracts.csv` | 1.73M (1.09M in window) |
 
@@ -122,7 +122,7 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 **Main script**: `download_om_minute_bars.py TICKER [WORKERS]`
 - Currently queries ClickHouse for contracts — **needs modification** to read from pre-generated CSVs on data feed machine (no ClickHouse available there)
 - **2-week limit per contract**: `fetch_bars()` stops paginating once bars go beyond 2 weeks before the most recent bar. Rationale: LSEG has a 1-year rolling retention window. During initial setup/debugging, time passes and the oldest bars risk expiring. Capping at 2 weeks immediately captures the data most at risk while the full pipeline is validated. Once setup is stable, this limit can be removed for a full backfill.
-- Outputs: `{TICKER}/om_minute_bars.csv`, `{TICKER}/om_bars_log.jsonl` (resume), `{TICKER}/om_bars_progress.log`
+- Outputs: `data/{TICKER}/om_minute_bars.csv`, `data/{TICKER}/om_bars_log.jsonl` (resume), `data/{TICKER}/om_bars_progress.log`
 - Resume: reads `om_bars_log.jsonl` to skip completed contracts — safe to kill/restart
 
 **Orchestrator**: `run_all_om_bars.sh`
@@ -132,9 +132,9 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 
 **Progress check**:
 ```bash
-COMPLETED=$(grep -l "COMPLETE" */om_run.log 2>/dev/null | wc -l)
+COMPLETED=$(grep -l "COMPLETE" data/*/om_run.log 2>/dev/null | wc -l)
 ACTIVE=$(ps aux | grep "download_om_minute_bars" | grep -v grep | awk '{print $13}')
-tail -2 "$ACTIVE/om_run.log"
+tail -2 "data/$ACTIVE/om_run.log"
 ```
 
 ### Download Status (as of 2026-03-26)
@@ -154,16 +154,16 @@ tail -2 "$ACTIVE/om_run.log"
 ## Migration Plan: Research Machine → Data Feed Machine
 
 ### Files to transfer via expansion drive
-1. `LSEG datastream/intraday options data/all_om_contracts.csv` — 4.12M OM contracts + RICs
+1. `LSEG datastream/expired options search/all_om_contracts.csv` — 4.12M OM contracts + RICs
 2. `LSEG datastream/expired options search/all_names_gap_rics.csv` — 482K gap RICs
 3. `LSEG datastream/expired options search/all_cboe_contracts.csv` — 1.73M CBOE Dec 5 contracts + RICs (built by `build_cboe_contracts.py`)
-4. `LSEG datastream/intraday options data/all_om_tickers.csv` — master ticker list
-5. All `{TICKER}/om_bars_log.jsonl` files — resume checkpoints
-6. All `{TICKER}/om_minute_bars.csv` files — data downloaded so far
+4. `LSEG datastream/expired options search/all_om_tickers.csv` — master ticker list
+5. All `data/{TICKER}/om_bars_log.jsonl` files — resume checkpoints
+6. All `data/{TICKER}/om_minute_bars.csv` files — data downloaded so far
 7. `.env` — LSEG credentials
 
 ### Scripts (via git clone — already in repo)
-- `download_om_minute_bars.py` — **needs modification** to read contracts from CSV not ClickHouse
+- `download_om_minute_bars.py` — refactored (CSV-based, full history, dynamic columns)
 - `run_all_om_bars.sh` — orchestrator
 - `pregen_om_contracts.py` — no longer needed after migration (contracts pre-generated)
 - `build_om_rics.py` — used to add RIC columns to raw ClickHouse export
@@ -184,23 +184,24 @@ LSEG datastream/
 ├── intraday options data/
 │   ├── download_om_minute_bars.py     # main bar download script
 │   ├── run_all_om_bars.sh             # orchestrator for all 6118 tickers
-│   ├── all_om_tickers.csv             # 6118 tickers ordered by contract count
-│   ├── all_om_contracts.csv           # 4.12M contracts with RICs (no ClickHouse needed)
 │   ├── pregen_om_contracts.py         # (used to generate all_om_contracts.csv)
 │   ├── build_om_rics.py               # (used to add RIC columns)
 │   ├── notes.md                       # full API/RIC technical reference
 │   ├── HANDOFF_OM_MINUTE_BARS.md      # download job handoff doc
 │   ├── INDEX_RIC_INVESTIGATION.md     # SPX/NDX/RUT RIC format investigation
-│   ├── {TICKER}/
-│   │   ├── om_minute_bars.csv         # downloaded bar data
-│   │   ├── om_bars_log.jsonl          # resume checkpoint
-│   │   └── om_run.log                 # per-ticker run log
+│   └── data/
+│       └── {TICKER}/
+│           ├── om_minute_bars.csv     # downloaded bar data
+│           ├── om_bars_log.jsonl      # resume checkpoint
+│           └── om_run.log             # per-ticker run log
 │   └── om_all_run.log                 # global orchestrator log
 └── expired options search/
-    ├── cboe_all_series_20251205.csv   # raw CBOE snapshot, 1.73M rows
-    ├── all_cboe_contracts.csv         # CBOE contracts with LSEG RICs
+    ├── all_om_contracts.csv           # 4.12M OM contracts with RICs
+    ├── all_om_tickers.csv             # 6118 tickers ordered by contract count
+    ├── all_cboe_contracts.csv         # 1.73M CBOE contracts with LSEG RICs
     ├── all_names_gap_rics.csv         # 482K gap period RIC candidates
     ├── all_names_gap_probe_results.csv # probe results (96.9% hit rate)
+    ├── cboe_all_series_20251205.csv   # raw CBOE snapshot, 1.73M rows
     ├── master_gap_rics_all.csv        # confirmed RICs for 16 core names
     ├── build_cboe_contracts.py        # parses CBOE snapshot → RICs
     └── eof scripts/
@@ -214,7 +215,7 @@ LSEG datastream/
 ### Immediate
 - [x] Modify `download_om_minute_bars.py` to read contracts from CSV (ClickHouse removed; all three source files supported via `--csv` flag; full history; columns discovered dynamically from API response)
 - [ ] Complete transfer of bar CSVs and log files to expansion drive
-- [ ] Transfer CSV files to data feed machine: `all_om_contracts.csv`, `all_om_tickers.csv`, `all_names_gap_rics.csv`, `all_cboe_contracts.csv`, `.env`, per-ticker `om_bars_log.jsonl`
+- [ ] Transfer to data feed machine: `expired options search/all_om_contracts.csv`, `all_om_tickers.csv`, `all_names_gap_rics.csv`, `all_cboe_contracts.csv`, `.env`, per-ticker `data/{TICKER}/om_bars_log.jsonl`
 - [ ] Install Python deps on data feed machine (`pip install requests python-dotenv lseg-data`)
 - [ ] Resume download on data feed machine
 
