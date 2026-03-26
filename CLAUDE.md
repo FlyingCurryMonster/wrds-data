@@ -101,7 +101,7 @@ Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 | Period | Source | File | Contracts |
 |--------|--------|------|-----------|
-| Mar 25 2025 – Mar 25 2026 | OptionMetrics `option_pricing` table | `intraday options data/all_om_contracts.csv` | 4.12M |
+| Mar 25 2025 – Mar 25 2026 | OptionMetrics `option_pricing` table | `expired options search/all_om_contracts.csv` | 4.12M |
 | Aug 30 – Dec 4 2025 | CBOE Dec 5 Wayback snapshot + brute-force probe | `expired options search/all_names_gap_rics.csv` | 482K |
 | Dec 5 2025 – present | CBOE Dec 5 Wayback snapshot | `expired options search/all_cboe_contracts.csv` | 1.73M (1.09M in window) |
 
@@ -132,9 +132,9 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 
 **Progress check**:
 ```bash
-COMPLETED=$(grep -l "COMPLETE" */om_run.log 2>/dev/null | wc -l)
+COMPLETED=$(grep -l "COMPLETE" data/*/om_run.log 2>/dev/null | wc -l)
 ACTIVE=$(ps aux | grep "download_om_minute_bars" | grep -v grep | awk '{print $13}')
-tail -2 "$ACTIVE/om_run.log"
+tail -2 "data/$ACTIVE/om_run.log"
 ```
 
 ### Download Status (as of 2026-03-26)
@@ -154,10 +154,10 @@ tail -2 "$ACTIVE/om_run.log"
 ## Migration Plan: Research Machine → Data Feed Machine
 
 ### Files to transfer via expansion drive
-1. `LSEG datastream/intraday options data/all_om_contracts.csv` — 4.12M OM contracts + RICs
+1. `LSEG datastream/expired options search/all_om_contracts.csv` — 4.12M OM contracts + RICs
 2. `LSEG datastream/expired options search/all_names_gap_rics.csv` — 482K gap RICs
 3. `LSEG datastream/expired options search/all_cboe_contracts.csv` — 1.73M CBOE Dec 5 contracts + RICs (built by `build_cboe_contracts.py`)
-4. `LSEG datastream/intraday options data/all_om_tickers.csv` — master ticker list
+4. `LSEG datastream/expired options search/all_om_tickers.csv` — master ticker list
 5. All `{TICKER}/om_bars_log.jsonl` files — resume checkpoints
 6. All `{TICKER}/om_minute_bars.csv` files — data downloaded so far
 7. `.env` — LSEG credentials
@@ -183,8 +183,6 @@ LSEG datastream/
 ├── intraday options data/
 │   ├── download_om_minute_bars.py     # main bar download script
 │   ├── run_all_om_bars.sh             # orchestrator for all 6118 tickers
-│   ├── all_om_tickers.csv             # 6118 tickers ordered by contract count
-│   ├── all_om_contracts.csv           # 4.12M contracts with RICs (no ClickHouse needed)
 │   ├── pregen_om_contracts.py         # (used to generate all_om_contracts.csv)
 │   ├── build_om_rics.py               # (used to add RIC columns)
 │   ├── notes.md                       # full API/RIC technical reference
@@ -196,10 +194,12 @@ LSEG datastream/
 │   │   └── om_run.log                 # per-ticker run log
 │   └── om_all_run.log                 # global orchestrator log
 └── expired options search/
-    ├── cboe_all_series_20251205.csv   # raw CBOE snapshot, 1.73M rows
-    ├── all_cboe_contracts.csv         # CBOE contracts with LSEG RICs
+    ├── all_om_contracts.csv           # 4.12M OM contracts with RICs
+    ├── all_om_tickers.csv             # 6118 tickers ordered by contract count
+    ├── all_cboe_contracts.csv         # 1.73M CBOE contracts with LSEG RICs
     ├── all_names_gap_rics.csv         # 482K gap period RIC candidates
     ├── all_names_gap_probe_results.csv # probe results (96.9% hit rate)
+    ├── cboe_all_series_20251205.csv   # raw CBOE snapshot, 1.73M rows
     ├── master_gap_rics_all.csv        # confirmed RICs for 16 core names
     ├── build_cboe_contracts.py        # parses CBOE snapshot → RICs
     └── eof scripts/
