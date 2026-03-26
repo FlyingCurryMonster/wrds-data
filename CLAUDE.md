@@ -169,10 +169,11 @@ tail -2 "$ACTIVE/om_run.log"
 - `build_om_rics.py` — used to add RIC columns to raw ClickHouse export
 - `LSEG datastream/expired options search/build_cboe_contracts.py` — used to parse CBOE snapshot
 
-### Outstanding modification needed
-`download_om_minute_bars.py` currently calls `Client("localhost")` to fetch contracts.
-Must be modified to read from `all_om_contracts.csv` filtered by ticker, so the data
-feed machine needs no ClickHouse. This modification is **not yet done**.
+### Script modification status
+`download_om_minute_bars.py` has been updated (2026-03-26):
+- Reads from CSV (no ClickHouse), supports all three source files via `--csv` flag
+- Downloads full history (1-year LSEG retention window, was 2-week limited before)
+- Column names discovered dynamically from API response headers
 
 ---
 
@@ -211,9 +212,10 @@ LSEG datastream/
 ## TODO
 
 ### Immediate
-- [ ] Modify `download_om_minute_bars.py` to read contracts from `all_om_contracts.csv` (remove ClickHouse dependency)
+- [x] Modify `download_om_minute_bars.py` to read contracts from CSV (ClickHouse removed; all three source files supported via `--csv` flag; full history; columns discovered dynamically from API response)
 - [ ] Complete transfer of bar CSVs and log files to expansion drive
-- [ ] Set up data feed machine: git clone, Python deps, `.env`, copy files from expansion drive
+- [ ] Transfer CSV files to data feed machine: `all_om_contracts.csv`, `all_om_tickers.csv`, `all_names_gap_rics.csv`, `all_cboe_contracts.csv`, `.env`, per-ticker `om_bars_log.jsonl`
+- [ ] Install Python deps on data feed machine (`pip install requests python-dotenv lseg-data`)
 - [ ] Resume download on data feed machine
 
 ### Pending
