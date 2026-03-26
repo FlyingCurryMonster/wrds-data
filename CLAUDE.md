@@ -101,11 +101,13 @@ Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 | Period | Source | File | Contracts |
 |--------|--------|------|-----------|
-| Mar 2025 – Aug 2025 | OptionMetrics `option_pricing` table | `all_om_contracts.csv` | 4.12M |
-| Aug 30 – Dec 4 2025 | CBOE Dec 5 Wayback snapshot + brute-force probe | `all_names_gap_rics.csv` | 482K |
-| Dec 5 2025 – Mar 2026 | CBOE Dec 5 Wayback snapshot | `all_cboe_contracts.csv` | 1.73M (1.09M in window) |
+| Mar 25 2025 – Mar 20 2026 | OptionMetrics `option_pricing` table | `intraday options data/all_om_contracts.csv` | 4.12M |
+| Aug 30 – Dec 4 2025 | CBOE Dec 5 Wayback snapshot + brute-force probe | `expired options search/all_names_gap_rics.csv` | 482K |
+| Dec 5 2025 – present | CBOE Dec 5 Wayback snapshot | `expired options search/all_cboe_contracts.csv` | 1.73M (1.09M in window) |
 
 All three files have `base_ric` and `query_ric` columns and require no ClickHouse on the data feed machine.
+
+Note: `all_om_contracts.csv` covers Mar 25 2025 – Mar 20 2026 (scoped to the 1-year LSEG retention window). It includes contracts expiring after Aug 29 2025 that were already listed in OM at snapshot time — these overlap with the gap and CBOE periods.
 
 ### Gap Period (Aug 30 – Dec 4 2025)
 OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
@@ -119,6 +121,7 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 
 **Main script**: `download_om_minute_bars.py TICKER [WORKERS]`
 - Currently queries ClickHouse for contracts — **needs modification** to read from pre-generated CSVs on data feed machine (no ClickHouse available there)
+- **2-week limit per contract**: `fetch_bars()` stops paginating once bars go beyond 2 weeks before the most recent bar. Rationale: LSEG has a 1-year rolling retention window. During initial setup/debugging, time passes and the oldest bars risk expiring. Capping at 2 weeks immediately captures the data most at risk while the full pipeline is validated. Once setup is stable, this limit can be removed for a full backfill.
 - Outputs: `{TICKER}/om_minute_bars.csv`, `{TICKER}/om_bars_log.jsonl` (resume), `{TICKER}/om_bars_progress.log`
 - Resume: reads `om_bars_log.jsonl` to skip completed contracts — safe to kill/restart
 
@@ -135,11 +138,11 @@ tail -2 "$ACTIVE/om_run.log"
 ```
 
 ### Download Status (as of 2026-03-26)
-- **Scale**: 4.12M contracts total, ~21K contracts/hour, ~50 hours remaining at current rate
-- **Completed tickers**: ~22/6,118
-- **Active**: running continuously on research machine, ~23 req/sec
-- **Output so far**: ~232 GB of CSV bar data being transferred to expansion drive
-- **Migration plan**: move job to data feed machine once transfer complete (see below)
+- **Scale**: 4.12M contracts total, ~21K contracts/hour at 23 req/sec
+- **Attempted tickers**: ~61/6,118
+- **Status**: **HALTED — research machine ran out of disk space** at ticker 61
+- **Output**: ~232 GB of CSV bar data already offloaded to expansion drive
+- **Migration plan**: move job to data feed machine (8TB drive, ~5.7TB free) — see below
 
 ### Tick Data (separate from bars)
 - Trade tick retention: ~3 months; quote tick retention: ~2.5 weeks
@@ -153,7 +156,7 @@ tail -2 "$ACTIVE/om_run.log"
 ### Files to transfer via expansion drive
 1. `LSEG datastream/intraday options data/all_om_contracts.csv` — 4.12M OM contracts + RICs
 2. `LSEG datastream/expired options search/all_names_gap_rics.csv` — 482K gap RICs
-3. `LSEG datastream/expired options search/all_cboe_contracts.csv` — 1.73M CBOE contracts + RICs
+3. `LSEG datastream/expired options search/all_cboe_contracts.csv` — 1.73M CBOE Dec 5 contracts + RICs (built by `build_cboe_contracts.py`)
 4. `LSEG datastream/intraday options data/all_om_tickers.csv` — master ticker list
 5. All `{TICKER}/om_bars_log.jsonl` files — resume checkpoints
 6. All `{TICKER}/om_minute_bars.csv` files — data downloaded so far
