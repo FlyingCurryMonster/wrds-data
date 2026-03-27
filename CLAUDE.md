@@ -145,11 +145,12 @@ tail -2 "data/$ACTIVE/om_run.log"
 ```
 
 ### Download Status (as of 2026-03-26)
-- **Scale**: 5.9M contracts across 6,570 tickers (OM + CBOE + gap), ~42 hours estimated
+- **Scale**: 5.9M contracts across 6,570 tickers (OM + CBOE + gap)
 - **Running on**: data feed machine (8TB expansion drive, ~5TB free)
-- **Completed on research machine**: ~60 tickers with 2-week-limited bars — need re-download
-- **Current status**: RUNNING — migrated to data feed machine, job active via nohup PID 362877
-- **Note**: NDX, SPX, RUT, RUTW skipped (wrong RIC format, 0 bars) — manually stamped COMPLETE to avoid wasting download time. See INDEX_RIC_INVESTIGATION.md for correct format investigation.
+- **Current status**: RUNNING — nohup PID 376629; currently processing XSP (71,472 contracts, ~96K bars each)
+- **Re-download in progress**: 52 liquid tickers from research machine reset and queued (checkpoint logs deleted, COMPLETE markers removed). Their 2-week CSVs preserved as `om_minute_bars_2wk.csv` on expansion drive. Orchestrator restarted — these run first (ordered by contract count desc: XSP → QQQ → SPY → IWM → TSLA → NVDA → AAPL…)
+- **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. See INDEX_RIC_INVESTIGATION.md.
+- **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
 ### Tick Data (separate from bars)
 - Trade tick retention: ~3 months; quote tick retention: ~2.5 weeks
@@ -229,7 +230,7 @@ LSEG datastream/
 - [x] Transfer files from expansion drive and resume download on data feed machine
 - [x] Install Python deps (`pip install requests python-dotenv lseg-data`)
 - [x] Download job running on data feed machine
-- [ ] Re-download the ~60 tickers completed on research machine with only 2-week bars — these are the most liquid names (AAPL, TSLA, NVDA, SPY, QQQ, IWM, GLD, NFLX, MELI, MSTR, DIA, GS, NOW, ASML, APP, LLY, SPOT, COIN, IVV, GEV, and ~40 more). To force re-run: delete `data/{TICKER}/om_bars_log.jsonl` and remove the COMPLETE line from `data/{TICKER}/om_run.log`, then re-run orchestrator.
+- [x] Re-download the 52 liquid tickers from research machine — reset and queued (2-week CSVs preserved as `om_minute_bars_2wk.csv` on expansion drive)
 
 ### Pending
 - [ ] Re-probe 14,824 errored rows in `all_names_gap_probe_results.csv`
