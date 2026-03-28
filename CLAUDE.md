@@ -160,8 +160,11 @@ tail -2 "data/$ACTIVE/om_run.log"
 - Trade tick columns: `DATE_TIME, EVENT_TYPE, RTL, SOURCE_DATETIME, SEQNUM, TRDXID_1, TRDPRC_1, TRDVOL_1, BID, BIDSIZE, ASK, ASKSIZE, PRCTCK_1, OPINT_1, PCTCHNG, ACVOL_UNS, OPEN_PRC, HIGH_1, LOW_1, QUALIFIERS, TAG`
 - API endpoint: `/data/historical-pricing/v1/views/events/{RIC}?eventTypes=trade&count=10000`
 - Plan: download per-ticker into `data/{TICKER}/trade_ticks.csv`, reusing `contracts.csv` filtered to last ~3 months
-- Scripts: `download_option_ticks.py` (multi-ticker, 8 workers, supports SPY/NVDA/AMD/TSLA/AAPL/AMZN/GOOG/MSFT/META/QQQ/IWM), `download_spy_ticks.py` (older SPY-only version), `probe_expired_trades.py` (probe script)
-- No tick data downloaded on this machine yet — SPY work from research machine was never migrated
+- **Main script**: `download_trades.py TICKER [WORKERS]` — reads `data/{TICKER}/contracts.csv`, filters to last ~92 days, downloads via events endpoint, resumes via `trades_log.jsonl`
+- Outputs: `data/{TICKER}/trade_ticks.csv`, `data/{TICKER}/trades_log.jsonl`, `data/{TICKER}/trades_progress.log`, `data/{TICKER}/trades_run.log`
+- Older scripts (`download_option_ticks.py`, `download_spy_ticks.py`) use live contract discovery — superseded by `download_trades.py`
+- `probe_expired_trades.py` — probe script that confirmed expired RICs work on events endpoint
+- No tick data downloaded on this machine yet
 
 ---
 
@@ -200,8 +203,9 @@ LSEG datastream/
 │   ├── run_all_om_bars.sh             # orchestrator (6,570 tickers, all sources)
 │   ├── build_ticker_contracts.py      # merges 3 source CSVs into per-ticker contracts.csv
 │   ├── all_tickers.csv                # 6,570 tickers ordered by contract count (all sources)
-│   ├── download_option_ticks.py       # trade tick downloader (multi-ticker, 8 workers)
-│   ├── download_spy_ticks.py          # older SPY-only tick downloader
+│   ├── download_trades.py             # trade tick downloader (mirrors bars script; filters to ~3mo window)
+│   ├── download_option_ticks.py       # older tick downloader (live discovery, superseded)
+│   ├── download_spy_ticks.py          # older SPY-only tick downloader (superseded)
 │   ├── probe_expired_trades.py        # probe script: confirms expired RICs work on events endpoint
 │   ├── pregen_om_contracts.py         # (used to generate all_om_contracts.csv)
 │   ├── build_om_rics.py               # (used to add RIC columns)
@@ -244,7 +248,7 @@ LSEG datastream/
 - [x] Re-download the 52 liquid tickers from research machine — reset and queued (2-week CSVs preserved as `om_minute_bars_2wk.csv` on expansion drive)
 
 ### Pending
-- [ ] Build trade tick download pipeline — per-ticker `trade_ticks.csv` in `data/{TICKER}/`, reusing `contracts.csv` filtered to last ~3 months; `download_option_ticks.py` needs adapting to use contracts.csv instead of live discovery
+- [x] Build trade tick download pipeline — `download_trades.py` mirrors bars script, reads `contracts.csv`, filters to ~92-day tick window, resumes via `trades_log.jsonl`
 - [ ] Re-probe 14,824 errored rows in `all_names_gap_probe_results.csv`
 - [ ] Download bars for gap period contracts (`all_names_gap_rics.csv`)
 - [ ] Download bars for CBOE Dec 2025–Mar 2026 contracts (`all_cboe_contracts.csv`)
