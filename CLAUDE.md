@@ -145,12 +145,12 @@ ACTIVE=$(ps aux | grep "download_om_minute_bars" | grep -v grep | awk '{print $1
 tail -2 "data/$ACTIVE/om_run.log"
 ```
 
-### Download Status (as of 2026-03-26)
+### Download Status (as of 2026-03-28)
 - **Scale**: 5.9M contracts across 6,570 tickers (OM + CBOE + gap)
-- **Running on**: data feed machine (8TB expansion drive, ~5TB free)
-- **Current status**: RUNNING — nohup PID 376629; currently processing XSP (71,472 contracts, ~96K bars each)
-- **Re-download in progress**: 52 liquid tickers from research machine reset and queued (checkpoint logs deleted, COMPLETE markers removed). Their 2-week CSVs preserved as `om_minute_bars_2wk.csv` on expansion drive. Orchestrator restarted — these run first (ordered by contract count desc: XSP → QQQ → SPY → IWM → TSLA → NVDA → AAPL…)
-- **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. See INDEX_RIC_INVESTIGATION.md.
+- **Storage**: `data/` moved to expansion drive; symlinked from repo — `data/ → /media/datafeed/Expansion/LSEG-data/intraday options data/data/`. All writes go to expansion (~5 TB free).
+- **2-week CSVs**: 61 research-machine tickers preserved as `om_minute_bars_2week.csv` in their respective dirs on expansion.
+- **Current status**: RUNNING — nohup PID 414062; currently processing IWM (resuming mid-download)
+- **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. XSP also skipped (34% zero-bar rate, too slow). See INDEX_RIC_INVESTIGATION.md.
 - **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
 ### Tick Data (separate from bars)
