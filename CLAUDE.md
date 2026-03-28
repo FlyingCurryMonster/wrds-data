@@ -154,9 +154,14 @@ tail -2 "data/$ACTIVE/om_run.log"
 - **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
 ### Tick Data (separate from bars)
-- Trade tick retention: ~3 months; quote tick retention: ~2.5 weeks
-- Much shorter retention window — lower priority than bars
-- Script exists: `download_spy_ticks.py` (SPY in progress as of 2026-03-18)
+- **Trade tick retention**: ~3 months; **quote tick retention**: ~2.5 weeks
+- **Confirmed (2026-03-28)**: expired RICs work on the events endpoint — same `^suffix` format as bars
+- Quote ticks disabled in download script — too dense, greeks-only value not worth volume
+- Trade tick columns: `DATE_TIME, EVENT_TYPE, RTL, SOURCE_DATETIME, SEQNUM, TRDXID_1, TRDPRC_1, TRDVOL_1, BID, BIDSIZE, ASK, ASKSIZE, PRCTCK_1, OPINT_1, PCTCHNG, ACVOL_UNS, OPEN_PRC, HIGH_1, LOW_1, QUALIFIERS, TAG`
+- API endpoint: `/data/historical-pricing/v1/views/events/{RIC}?eventTypes=trade&count=10000`
+- Plan: download per-ticker into `data/{TICKER}/trade_ticks.csv`, reusing `contracts.csv` filtered to last ~3 months
+- Scripts: `download_option_ticks.py` (multi-ticker, 8 workers, supports SPY/NVDA/AMD/TSLA/AAPL/AMZN/GOOG/MSFT/META/QQQ/IWM), `download_spy_ticks.py` (older SPY-only version), `probe_expired_trades.py` (probe script)
+- No tick data downloaded on this machine yet — SPY work from research machine was never migrated
 
 ---
 
@@ -195,6 +200,9 @@ LSEG datastream/
 │   ├── run_all_om_bars.sh             # orchestrator (6,570 tickers, all sources)
 │   ├── build_ticker_contracts.py      # merges 3 source CSVs into per-ticker contracts.csv
 │   ├── all_tickers.csv                # 6,570 tickers ordered by contract count (all sources)
+│   ├── download_option_ticks.py       # trade tick downloader (multi-ticker, 8 workers)
+│   ├── download_spy_ticks.py          # older SPY-only tick downloader
+│   ├── probe_expired_trades.py        # probe script: confirms expired RICs work on events endpoint
 │   ├── pregen_om_contracts.py         # (used to generate all_om_contracts.csv)
 │   ├── build_om_rics.py               # (used to add RIC columns)
 │   ├── notes.md                       # full API/RIC technical reference
@@ -207,7 +215,9 @@ LSEG datastream/
 │           ├── om_minute_bars.csv     # downloaded bar data
 │           ├── om_bars_log.jsonl      # resume checkpoint (one entry per contract)
 │           ├── om_bars_progress.log   # timestamped throughput log
-│           └── om_run.log             # per-ticker run log
+│           ├── om_run.log             # per-ticker run log
+│           ├── trade_ticks.csv        # (planned) trade tick data
+│           └── ticks_log.jsonl        # (planned) tick resume checkpoint
 └── expired options search/
     ├── all_om_contracts.csv           # 4.12M OM contracts with RICs
     ├── all_om_tickers.csv             # 6,118 OM-only tickers
@@ -234,6 +244,7 @@ LSEG datastream/
 - [x] Re-download the 52 liquid tickers from research machine — reset and queued (2-week CSVs preserved as `om_minute_bars_2wk.csv` on expansion drive)
 
 ### Pending
+- [ ] Build trade tick download pipeline — per-ticker `trade_ticks.csv` in `data/{TICKER}/`, reusing `contracts.csv` filtered to last ~3 months; `download_option_ticks.py` needs adapting to use contracts.csv instead of live discovery
 - [ ] Re-probe 14,824 errored rows in `all_names_gap_probe_results.csv`
 - [ ] Download bars for gap period contracts (`all_names_gap_rics.csv`)
 - [ ] Download bars for CBOE Dec 2025–Mar 2026 contracts (`all_cboe_contracts.csv`)
