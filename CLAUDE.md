@@ -95,7 +95,8 @@ Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 ### Known RIC Format Issues
 - **NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars. All skipped (stamped COMPLETE). See `INDEX_RIC_INVESTIGATION.md`.
-- **MRUT, XSP**: Work correctly with OPRA format despite being index products (micro/mini sized, structured differently).
+- **XSP**: RIC format is correct (OPRA) but skipped — 34% zero-bar rate across 71K contracts, took 3+ days without finishing. Stamped COMPLETE.
+- **MRUT**: Works correctly with OPRA format despite being an index product (micro-sized, structured differently maybe?).
 
 ### Contract Sources (Three Periods)
 
