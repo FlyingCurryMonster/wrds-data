@@ -94,9 +94,10 @@ Strike encoding: `strike_price // 10` (OM strike is in tenths of a cent; LSEG dr
 Example: NVDA $120 Call exp 2025-06-20 → `NVDAF202512000.U^F25`
 
 ### Known RIC Format Issues
-- **NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars. All skipped (stamped COMPLETE). See `INDEX_RIC_INVESTIGATION.md`.
-- **XSP**: RIC format is correct (OPRA) but skipped — 34% zero-bar rate across 71K contracts, took 3+ days without finishing. Stamped COMPLETE.
-- **MRUT**: Works correctly with OPRA format despite being an index product (micro-sized, structured differently maybe?).
+- **NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA**: CBOE-listed index options use a different RIC format — NOT OPRA equity format. Return 0 bars/ticks. Stamped COMPLETE for **both** minute bars and trades. See `INDEX_RIC_INVESTIGATION.md`.
+- **XSP**: RIC format is correct (OPRA) but skipped — 34% zero-bar rate across 71K contracts, too slow. Stamped COMPLETE for **both** minute bars and trades.
+- **CBTXW**: Unknown CBOE index product, 0 bars/ticks. Stamped COMPLETE for both.
+- **MRUT**: Works correctly with OPRA format despite being an index product (micro-sized, structured differently).
 
 ### Contract Sources (Three Periods)
 
@@ -162,9 +163,10 @@ tail -2 "data/$ACTIVE/om_run.log"
 - Plan: download per-ticker into `data/{TICKER}/trade_ticks.csv`, reusing `contracts.csv` filtered to last ~3 months
 - **Main script**: `download_trades.py TICKER [WORKERS]` — reads `data/{TICKER}/contracts.csv`, filters to last ~92 days, downloads via events endpoint, resumes via `trades_log.jsonl`
 - Outputs: `data/{TICKER}/trade_ticks.csv`, `data/{TICKER}/trades_log.jsonl`, `data/{TICKER}/trades_progress.log`, `data/{TICKER}/trades_run.log`
+- Same index skip list as bars: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW, XSP all stamped COMPLETE in `trades_run.log`
 - Older scripts (`download_option_ticks.py`, `download_spy_ticks.py`) use live contract discovery — superseded by `download_trades.py`
 - `probe_expired_trades.py` — probe script that confirmed expired RICs work on events endpoint
-- No tick data downloaded on this machine yet
+- **Status**: RUNNING (PID 415565, started 2026-03-28) — currently on QQQ
 
 ---
 
