@@ -151,6 +151,7 @@ tail -2 "data/$ACTIVE/om_run.log"
 - **Storage**: `data/` moved to expansion drive; symlinked from repo — `data/ → /media/datafeed/Expansion/LSEG-data/intraday options data/data/`. All writes go to expansion (~5 TB free).
 - **2-week CSVs**: 61 research-machine tickers preserved as `om_minute_bars_2week.csv` in their respective dirs on expansion.
 - **Current status**: RUNNING — nohup PID 414062; currently processing IWM (resuming mid-download)
+- **IWM note**: High zero-bar rate observed (~2,500 contracts in with CSV still at 7.3 GB) — many IWM contracts returning no data, likely deep OTM or illiquid strikes
 - **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. XSP also skipped (34% zero-bar rate, too slow). See INDEX_RIC_INVESTIGATION.md.
 - **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
