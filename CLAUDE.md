@@ -121,6 +121,8 @@ OptionMetrics ends 2025-08-29. To cover the gap before the CBOE Dec 5 snapshot:
 
 ### Download Pipeline
 
+> **Legacy naming note**: Scripts and output files use the `om_` prefix (`download_om_minute_bars.py`, `run_all_om_bars.sh`, `om_minute_bars.csv`, `om_bars_log.jsonl`, `om_run.log`) from when this pipeline was OptionMetrics-only. It now covers all three contract sources (OM + CBOE + gap) with no ClickHouse dependency — the `om_` prefix is purely historical.
+
 **Main script**: `download_om_minute_bars.py TICKER [WORKERS] [--csv PATH]`
 - Reads contracts from `data/{TICKER}/contracts.csv` (pre-built per-ticker file, no ClickHouse)
 - Downloads full history — no time cap; paginates until LSEG returns no more data
@@ -153,7 +155,7 @@ tail -2 "data/$ACTIVE/om_run.log"
 - **Current status**: RUNNING — nohup PID 414062; currently processing IWM (resuming mid-download)
 - **Zero-bar tickers observed**:
   - **IWM**: Heavy zero-bar stretch mid-download but still produced 7.1 GB total — likely deep OTM/illiquid strikes
-  - **BKNG**: 9,150+ contracts processed with 0 bars — entirely zero so far; may be RIC format issue with high-strike tickers or contracts outside the 1-year retention window
+  - **BKNG**: 11K+ contracts, 100% zero-bar rate — stamped COMPLETE and skipped; suspected RIC format issue across all strikes (not just high strikes), needs investigation
 - **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. XSP also skipped (34% zero-bar rate, too slow). See INDEX_RIC_INVESTIGATION.md.
 - **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
