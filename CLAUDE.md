@@ -155,7 +155,9 @@ tail -2 "data/$ACTIVE/om_run.log"
 - **Current status**: RUNNING — nohup PID 414062; currently processing IWM (resuming mid-download)
 - **Zero-bar tickers observed**:
   - **IWM**: Heavy zero-bar stretch mid-download but still produced 7.1 GB total — likely deep OTM/illiquid strikes
-  - **BKNG**: 11K+ contracts, 100% zero-bar rate — stamped COMPLETE and skipped; suspected RIC format issue across all strikes (not just high strikes), needs investigation
+  - **BKNG**: 11K+ contracts, 100% zero-bar rate — stamped COMPLETE and skipped; suspected RIC format issue across all strikes, needs investigation
+  - **NFLX**: Heavy zero-bar stretches observed mid-download (1.25 GB produced so far, but long runs of 0-bar contracts)
+  - many of the names have zero bar contracts, this is becoming common across all names even the liquid etfs
 - **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. XSP also skipped (34% zero-bar rate, too slow). See INDEX_RIC_INVESTIGATION.md.
 - **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
 
