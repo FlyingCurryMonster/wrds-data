@@ -148,18 +148,19 @@ ACTIVE=$(ps aux | grep "download_om_minute_bars" | grep -v grep | awk '{print $1
 tail -2 "data/$ACTIVE/om_run.log"
 ```
 
-### Download Status (as of 2026-03-28)
+### Download Status (as of 2026-03-31)
 - **Scale**: 5.9M contracts across 6,570 tickers (OM + CBOE + gap)
-- **Storage**: `data/` moved to expansion drive; symlinked from repo — `data/ → /media/datafeed/Expansion/LSEG-data/intraday options data/data/`. All writes go to expansion (~5 TB free).
+- **Storage**: `data/` moved to expansion drive; symlinked from repo — `data/ → /media/datafeed/Expansion/LSEG-data/intraday options data/data/`. All writes go to expansion (~4.8 TB free). Currently 182 GB used.
 - **2-week CSVs**: 61 research-machine tickers preserved as `om_minute_bars_2week.csv` in their respective dirs on expansion.
-- **Current status**: RUNNING — nohup PID 414062; currently processing IWM (resuming mid-download)
-- **Zero-bar tickers observed**:
-  - **IWM**: Heavy zero-bar stretch mid-download but still produced 7.1 GB total — likely deep OTM/illiquid strikes
-  - **BKNG**: 11K+ contracts, 100% zero-bar rate — stamped COMPLETE and skipped; suspected RIC format issue across all strikes, needs investigation
-  - **NFLX**: Heavy zero-bar stretches observed mid-download (1.25 GB produced so far, but long runs of 0-bar contracts)
-  - many of the names have zero bar contracts, this is becoming common across all names even the liquid etfs
+- **Bars status**: RUNNING — currently on MELI; 18 tickers completed (5 real: QQQ, SPY, IWM, GLD, NFLX + 13 skipped/index)
+- **Trades status**: RUNNING — 246 tickers completed, moving fast due to 3-month retention window
+- **Zero-bar/tick rates** (systemic across all names):
+  - Bars: **71% zero-bar rate** (392K/553K contracts) — 1-year retention, so most zeros are genuinely untradedcontracts (deep OTM, illiquid strikes). Liquid names fare better: SPY 11%, QQQ 23%, IWM 70%, GLD 96%.
+  - Trades: **66% zero-tick rate** (263K/397K contracts) — 3-month retention means contracts expired >3 months ago always return 0 regardless of liquidity.
+  - Zero-bar/tick contracts are tracked in `om_bars_log.jsonl` / `trades_log.jsonl` (`"bars":0` / `"ticks":0`)
+- **100% zero-bar tickers (RIC issues suspected)**: BKNG (all strikes, needs investigation), BRK (likely BRK.A/BRK.B RIC mismatch)
 - **Skipped (wrong RIC format, 0 bars)**: NDX, SPX, RUT, RUTW, SPXW, XEO, OEX, XND, MXEA, CBTXW — stamped COMPLETE. XSP also skipped (34% zero-bar rate, too slow). See INDEX_RIC_INVESTIGATION.md.
-- **Storage estimate**: ~106 bytes/bar; realistic total ~3 TB (most contracts are short-dated)
+- **Storage estimate**: ~106 bytes/bar; realistic total likely much lower than 3 TB given 71% zero-bar rate
 
 ### Tick Data (separate from bars)
 - **Trade tick retention**: ~3 months; **quote tick retention**: ~2.5 weeks
