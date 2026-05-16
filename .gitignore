@@ -14,3 +14,5 @@ option_metrics/option prices/b3hi0tslj1nrm1fl.C-LfE_4r.csv.part
 **/*.log
 **/*.txt
 .claude/scheduled_tasks.lock
+compustat/compustat_pit_factor_loadings_chat_export.md
+lseg ibes/GPT_guidance.md
